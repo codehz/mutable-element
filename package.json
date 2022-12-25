@@ -1,0 +1,40 @@
+{
+  "name": "mutable-element",
+  "version": "0.1.0",
+  "description": "A library for create and manipulate html element",
+  "exports": {
+    ".": {
+      "import": {
+        "default": "./esm/index.js",
+        "types": "./esm/index.d.ts"
+      },
+      "require": {
+        "default": "./cjs/index.cjs",
+        "types": "./cjs/index.d.ts"
+      }
+    }
+  },
+  "main": "./cjs/index.cjs",
+  "types": "./cjs/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "prepare": "tsc && tsc --project tsconfig.cjs.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codehz/mutable-element.git"
+  },
+  "keywords": [
+    "frontend",
+    "ui"
+  ],
+  "author": "CodeHz",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/codehz/mutable-element/issues"
+  },
+  "homepage": "https://github.com/codehz/mutable-element#readme",
+  "devDependencies": {
+    "typescript": "^4.9.4"
+  }
+}

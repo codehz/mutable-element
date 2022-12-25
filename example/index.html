@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<title>DEMO</title>
+<script type="module">
+  import {
+    html,
+    mount,
+    text,
+    css,
+    clock,
+    on,
+    fragment,
+    range,
+    list,
+    attr,
+    shadow,
+    Reactor,
+    KeyedListRenderer,
+  } from "../esm/index.js";
+
+  function simple_counter() {
+    return html`div`(
+      text("current: "),
+      text("0", async function* () {
+        let value = 0;
+        for await (const _ of clock(1000)) {
+          yield ++value;
+          if (!this.isConnected) break;
+        }
+      })
+    );
+  }
+
+  function button_counter() {
+    const stream = new Reactor();
+    return html`div`(
+      html`button`(
+        "click me!",
+        on("click", () => void stream.push())
+      ),
+      text("click count: "),
+      text("0", async function* () {
+        let value = 0;
+        for await (const _ of stream) {
+          yield ++value;
+          if (!this.isConnected) break;
+        }
+      })
+    );
+  }
+
+  function frag_test() {
+    const stream = new Reactor();
+    return html`div`(
+      html`button`(
+        "test range",
+        on("click", () => void stream.push())
+      ),
+      text("before"),
+      range(async function* () {
+        let value = 0;
+        for await (const _ of stream) {
+          console.log("push");
+          yield ++value;
+        }
+      }),
+      text("after")
+    );
+  }
+
+  function todo_item(item) {
+    return html`div.todo-item`(
+      html`div`(text(item.id)),
+      html`input`(
+        attr({ value: item.text }),
+        on("change", function (e) {
+          item.text = this.value;
+        })
+      ),
+      html`button`(
+        text("remove"),
+        on("click", function () {
+          this.dispatchEvent(
+            new CustomEvent("remove", { detail: item.id, bubbles: true })
+          );
+        })
+      )
+    );
+  }
+
+  function todo_list() {
+    const l = list(new KeyedListRenderer("id", todo_item));
+    return html`div.todo-list`(
+      l,
+      shadow(
+        { mode: "open" },
+        css`
+          slot {
+            display: block;
+          }
+        `,
+        on("remove", (e) => {
+          e.stopPropagation();
+          l.remove(e.detail);
+        }),
+        html`div`(
+          html`button`(
+            "append",
+            on("click", () => {
+              l.append({
+                id: Math.random().toString(36).slice(2),
+                text: "123",
+              });
+            })
+          ),
+          html`button`(
+            "prepend",
+            on("click", () => {
+              l.prepend({
+                id: Math.random().toString(36).slice(2),
+                text: "456",
+              });
+            })
+          ),
+          html`button`(
+            "replace random",
+            on("click", () => {
+              const list = [];
+              const r = (Math.random() * 20) | 0;
+              for (let i = 0; i < r; i++) {
+                list.push({
+                  id: Math.random().toString(36).slice(2),
+                  text: "123",
+                });
+              }
+              l.assign(list);
+            })
+          ),
+          html`button`(
+            "reverse",
+            on("click", () => {
+              l.assign(l.list.reverse());
+            })
+          ),
+          html`button`(
+            "shuffle",
+            on("click", () => {
+              const array = l.data;
+              for (let i = array.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+              }
+              l.assign(array);
+            })
+          ),
+          html`button`(
+            "clear",
+            on("click", () => {
+              l.clear();
+            })
+          )
+        ),
+        html`slot`()
+      )
+    );
+  }
+
+  mount(
+    document.body,
+    simple_counter(),
+    button_counter(),
+    frag_test(),
+    todo_list()
+  );
+</script>
