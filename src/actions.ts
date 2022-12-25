@@ -136,12 +136,12 @@ export function style(input: StyleDeclarationInput) {
             el.style[key as any] = value;
           }
           const realKey = key
-            .replace(/^$/, "-")
+            .replace(/^\$/, "-")
             .replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
           el.style.setProperty(realKey, value);
         } else if (!value) {
           const realKey = key
-            .replace(/^$/, "-")
+            .replace(/^\$/, "-")
             .replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
           el.style.removeProperty(realKey);
         }
