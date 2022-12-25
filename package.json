@@ -1,6 +1,6 @@
 {
   "name": "mutable-element",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A library for create and manipulate html element",
   "exports": {
     ".": {
@@ -9,7 +9,7 @@
         "types": "./esm/index.d.ts"
       },
       "require": {
-        "default": "./cjs/index.cjs",
+        "default": "./cjs/index.js",
         "types": "./cjs/index.d.ts"
       }
     }
