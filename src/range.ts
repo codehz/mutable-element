@@ -14,7 +14,7 @@ export class DynamicRange {
   }
   get firstChild() {
     const first = this.start.nextSibling;
-    return first === this.end ? first : null;
+    return first !== this.end ? first : null;
   }
 
   get childNodes(): ReadonlyArray<Node> {
@@ -22,8 +22,8 @@ export class DynamicRange {
     const ret = [] as Node[];
     while (true) {
       current = current.nextSibling!;
-      if (current !== this.end) ret.push(current);
-      break;
+      if (current === this.end) break;
+      ret.push(current);
     }
     return ret;
   }
