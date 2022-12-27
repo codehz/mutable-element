@@ -88,7 +88,9 @@
   }
 
   function todo_list() {
-    const l = list(new KeyedListRenderer("id", todo_item));
+    const l = list(new KeyedListRenderer("id", todo_item), [
+      { id: "initial", text: "initial" },
+    ]);
     return html`div.todo-list`(
       l,
       shadow(

@@ -271,10 +271,7 @@ function copyProps<T, R>(input: T, rhs: R): T & R {
   ) as T & R;
 }
 
-export function list<T extends {}>(
-  renderer: ListRenderer<T>,
-  ...rest: ListAction<T>[]
-) {
+export function list<T extends {}>(renderer: ListRenderer<T>, initial?: T[]) {
   type Packed = { range: DynamicRange; value: T };
   const data = [] as Packed[];
   const n = renderer.name ?? "list-" + Math.random().toString(36).slice(2);
@@ -439,8 +436,9 @@ export function list<T extends {}>(
       processAction(action);
     }
   }
-  const ret = namedRange(n, ...rest.map((item) => processList(item)));
+  const ret = namedRange(n);
   root = ret.range;
+  if (initial) processAction({ type: "assign", value: initial });
   return copyProps(ret, {
     get data() {
       return data.map((x) => x.value);
