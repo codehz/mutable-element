@@ -225,7 +225,7 @@ function namedRange(name: string, ...rest: MutateAction<DynamicRange>[]) {
       await mutateRange(range, p);
     }
   })().catch(console.error);
-  return Object.assign(frag, { range });
+  return Object.assign(() => frag, { range });
 }
 
 export function range(...rest: MutateAction<DynamicRange>[]) {
@@ -280,7 +280,7 @@ export function list<T extends {}>(renderer: ListRenderer<T>, initial?: T[]) {
   function insertAt(item: T, point: Node) {
     const key = renderer.extractKey(item);
     let nrange = namedRange(n + ":" + key, renderer.render(item));
-    point.parentNode!.insertBefore(nrange, point);
+    point.parentNode!.insertBefore(nrange(), point);
     return nrange.range;
   }
   function appendData(value: T[], ref?: string) {
