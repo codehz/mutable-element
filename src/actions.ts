@@ -236,12 +236,8 @@ export function range(...rest: MutateAction<DynamicRange>[]) {
 export interface ListRenderer<T extends {}> {
   readonly name?: string;
   extractKey(input: T): string;
-  render(input: T): AsyncGenerator<MutateAction<DynamicRange>>;
-  update?(
-    range: DynamicRange,
-    input: T,
-    old: T
-  ): AsyncGenerator<MutateAction<DynamicRange>>;
+  render(input: T): MutateAction<DynamicRange>;
+  update?(range: DynamicRange, input: T, old: T): MutateAction<DynamicRange>;
 }
 
 export class KeyedListRenderer<
@@ -254,12 +250,12 @@ export class KeyedListRenderer<
   name?: string;
   constructor(
     private readonly key: K,
-    public render: (input: T) => AsyncGenerator<MutateAction<DynamicRange>>,
+    public render: (input: T) => MutateAction<DynamicRange>,
     public update?: (
       range: DynamicRange,
       input: T,
       old: T
-    ) => AsyncGenerator<MutateAction<DynamicRange>>
+    ) => MutateAction<DynamicRange>
   ) {
     this.name = render.name || undefined;
   }
