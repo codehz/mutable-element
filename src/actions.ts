@@ -264,13 +264,6 @@ export class KeyedListRenderer<
   }
 }
 
-function copyProps<T, R>(input: T, rhs: R): T & R {
-  return Object.defineProperties(
-    input,
-    Object.getOwnPropertyDescriptors(rhs)
-  ) as T & R;
-}
-
 export function list<T extends {}>(renderer: ListRenderer<T>, initial?: T[]) {
   type Packed = { range: DynamicRange; value: T };
   const data = [] as Packed[];
@@ -439,7 +432,7 @@ export function list<T extends {}>(renderer: ListRenderer<T>, initial?: T[]) {
   const ret = namedRange(n);
   root = ret.range;
   if (initial) processAction({ type: "assign", value: initial });
-  return copyProps(ret, {
+  return assignProps(ret, {
     get data() {
       return data.map((x) => x.value);
     },
