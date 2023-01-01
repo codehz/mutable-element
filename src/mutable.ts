@@ -27,7 +27,8 @@ export async function mutate<T extends Node>(el: T, ret: MutateAction<T>) {
 }
 
 export async function mount<T extends Node>(el: T, ...rest: MutateAction<T>[]) {
-  return mutate(el, rest);
+  await mutate(el, rest);
+  return el;
 }
 
 function parseName(target: string, ns?: string) {
