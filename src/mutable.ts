@@ -1,6 +1,6 @@
 import { MutateAction } from "./types.js";
 
-export async function mutate(el: Node, ret: MutateAction) {
+export async function mutate<T extends Node>(el: T, ret: MutateAction<T>) {
   if (ret == null || typeof ret === "boolean") {
     return;
   } else if (ret instanceof Node) {
@@ -26,7 +26,7 @@ export async function mutate(el: Node, ret: MutateAction) {
   } else console.error("invalid object", ret);
 }
 
-export async function mount(el: Node, ...rest: MutateAction[]) {
+export async function mount<T extends Node>(el: T, ...rest: MutateAction<T>[]) {
   return mutate(el, rest);
 }
 
@@ -47,14 +47,14 @@ function parseName(target: string, ns?: string) {
 }
 
 function generateCreateElement<N extends Element>(name: string, ns?: string) {
-  const el = parseName(name, ns);
-  return (...rest: MutateAction[]) => {
+  const el = parseName(name, ns) as N;
+  return (...rest: MutateAction<N>[]) => {
     (async () => {
       for (let p of rest) {
         await mutate(el, p);
       }
     })().catch(console.error);
-    return el as N;
+    return el;
   };
 }
 
@@ -64,7 +64,7 @@ function generateCreateElement<N extends Element>(name: string, ns?: string) {
 export function html(
   template: { raw: readonly string[] | ArrayLike<string> },
   ...substitutions: any[]
-): (...rest: MutateAction[]) => HTMLElement {
+): (...rest: MutateAction<HTMLElement>[]) => HTMLElement {
   return generateCreateElement(String.raw(template, ...substitutions));
 }
 
@@ -74,7 +74,7 @@ export function html(
 export function svg(
   template: { raw: readonly string[] | ArrayLike<string> },
   ...substitutions: any[]
-): (...rest: MutateAction[]) => SVGElement {
+): (...rest: MutateAction<SVGElement>[]) => SVGElement {
   return generateCreateElement(
     String.raw(template, ...substitutions),
     "http://www.w3.org/2000/svg"
@@ -87,7 +87,7 @@ export function svg(
 export function mathml(
   template: { raw: readonly string[] | ArrayLike<string> },
   ...substitutions: any[]
-): (...rest: MutateAction[]) => MathMLElement {
+): (...rest: MutateAction<MathMLElement>[]) => MathMLElement {
   return generateCreateElement(
     String.raw(template, ...substitutions),
     "http://www.w3.org/1998/Math/MathML"
@@ -99,7 +99,7 @@ export function mathml(
  * @param rest Initial mutate actions
  * @returns TextNode
  */
-export function text(...rest: MutateAction[]) {
+export function text(...rest: MutateAction<Text>[]) {
   const el = document.createTextNode("");
   (async () => {
     for (let p of rest) {
@@ -114,7 +114,7 @@ export function text(...rest: MutateAction[]) {
  * @param rest Initial mutate actions
  * @returns DocumentFragment
  */
-export function fragment(...rest: MutateAction[]) {
+export function fragment(...rest: MutateAction<DocumentFragment>[]) {
   const el = document.createDocumentFragment();
   (async () => {
     for (let p of rest) {

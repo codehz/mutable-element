@@ -51,7 +51,10 @@ function assignProps<T, R>(input: T, rhs: R): T & R {
  * @param rest Initial mutate actions
  * @returns ShadowRoot mutate action
  */
-export function shadow(init: ShadowRootInit, ...rest: MutateAction[]) {
+export function shadow(
+  init: ShadowRootInit,
+  ...rest: MutateAction<ShadowRoot>[]
+) {
   return (el: Node) => {
     if (el instanceof HTMLElement) {
       const root = el.attachShadow(init);
@@ -108,12 +111,12 @@ export function css(
  * @param options Event Listener Options
  * @returns Event Listener mutate action
  */
-export function on(
+export function on<T extends Node>(
   name: string,
-  listener: (this: Node, event: Event) => MutateAction,
+  listener: (this: T, event: Event) => MutateAction<T>,
   options?: AddEventListenerOptions
 ) {
-  return (el: Node) => {
+  return (el: T) => {
     el.addEventListener(
       name,
       (e) => void mutate(el, listener.call(el, e)).catch(console.error),
@@ -199,7 +202,7 @@ export function attr(input: Record<string, unknown>) {
  * @param node Target node
  * @returns Prepending target to current element actions
  */
-export function prepend(...rest: MutateAction[]) {
+export function prepend(...rest: MutateAction<DocumentFragment>[]) {
   return (el: Node | DynamicRange) =>
     void el.insertBefore(fragment(...rest), el.firstChild);
 }
@@ -209,8 +212,21 @@ export function prepend(...rest: MutateAction[]) {
  * @param node Target node
  * @returns Appending target to current element action
  */
-export function append(...rest: MutateAction[]) {
+export function append(...rest: MutateAction<DocumentFragment>[]) {
   return (el: Node | DynamicRange) => void el.appendChild(fragment(...rest));
+}
+
+/**
+ * Empty element
+ */
+export function empty() {
+  return (el: Node | DynamicRange) => {
+    if (el instanceof DynamicRange) {
+      el.static.deleteContents();
+    } else {
+      while (el.firstChild) el.removeChild(el.firstChild);
+    }
+  };
 }
 
 function namedRange(name: string, ...rest: MutateAction<DynamicRange>[]) {
