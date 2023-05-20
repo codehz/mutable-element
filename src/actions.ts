@@ -461,8 +461,28 @@ export function list<T extends {}>(renderer: ListRenderer<T>, initial?: T[]) {
     append(...value: T[]) {
       processAction({ type: "append", value });
     },
+    appendUnique(...value: T[]) {
+      processAction({
+        type: "append",
+        value: value.filter((x) =>
+          data.every(
+            (y) => renderer.extractKey(y.value) !== renderer.extractKey(x)
+          )
+        ),
+      });
+    },
     prepend(...value: T[]) {
       processAction({ type: "prepend", value });
+    },
+    prependUnique(...value: T[]) {
+      processAction({
+        type: "prepend",
+        value: value.filter((x) =>
+          data.every(
+            (y) => renderer.extractKey(y.value) !== renderer.extractKey(x)
+          )
+        ),
+      });
     },
     remove(...keys: string[]) {
       processAction({ type: "remove", keys });
