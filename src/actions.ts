@@ -198,6 +198,18 @@ export function attr(input: Record<string, unknown>) {
 }
 
 /**
+ * Dataset function takes in an input object and returns a function that assigns the input object as data attributes 
+ * to an HTML element if the element is of type HTMLElement.
+ * 
+ * @param input - An object containing data attributes to assign to the HTML element.
+ * @returns A function that assigns the input object as data attributes to an HTML element if the element is of type HTMLElement.
+ */
+export function dataset(input: Record<string, unknown>) {
+  return (el: Node) =>
+    void (el instanceof HTMLElement && Object.assign(el.dataset, input));
+}
+
+/**
  * Generate prepend action
  * @param node Target node
  * @returns Prepending target to current element actions
