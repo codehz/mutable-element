@@ -20,7 +20,7 @@ export class Reactor<T = void> implements AsyncIterableIterator<T> {
       stop: () => void
     ) => void | (() => void)
   ) {
-    let reactor: Reactor<T> = new Reactor<T>();
+    const reactor: Reactor<T> = new Reactor<T>();
     reactor.onExit =
       handler(reactor.push.bind(reactor), reactor.stop.bind(reactor)) ??
       undefined;
@@ -50,14 +50,12 @@ export class Reactor<T = void> implements AsyncIterableIterator<T> {
     }
   }
   next(): Promise<IteratorResult<T, void>> {
-    if (this.done_flag) {
-      return Promise.resolve({
-        done: true,
-        value: undefined,
-      });
-    } else {
-      return (this.wait ??= new Resolver()).promise;
-    }
+    return this.done_flag
+      ? Promise.resolve({
+          done: true,
+          value: undefined,
+        })
+      : (this.wait ??= new Resolver()).promise;
   }
   return(): Promise<IteratorResult<T, void>> {
     if (!this.done_flag) this.onExit?.();
@@ -99,7 +97,7 @@ export class BufferedReactor<T> extends Reactor<T> {
       stop: () => void
     ) => void | (() => void)
   ) {
-    let reactor: BufferedReactor<T> = new BufferedReactor<T>();
+    const reactor: BufferedReactor<T> = new BufferedReactor<T>();
     reactor.onExit =
       handler(reactor.push.bind(reactor), reactor.stop.bind(reactor)) ??
       undefined;
@@ -120,7 +118,7 @@ export class BufferedReactor<T> extends Reactor<T> {
     }
   }
   next(): Promise<IteratorResult<T, void>> {
-    let value = this.queue.shift();
+    const value = this.queue.shift();
     if (value) {
       return Promise.resolve({
         done: false,
@@ -164,7 +162,7 @@ export function clock(ms: number) {
 
 export function animationFrame() {
   return Reactor.create<DOMHighResTimeStamp>((push) => {
-    let handler = requestAnimationFrame(function cb(time) {
+    const handler = requestAnimationFrame(function cb(time) {
       push(time);
       requestAnimationFrame(cb);
     });
@@ -174,7 +172,7 @@ export function animationFrame() {
 
 export function idle() {
   return Reactor.create<IdleDeadline>((push) => {
-    let handler = requestIdleCallback(function cb(time) {
+    const handler = requestIdleCallback(function cb(time) {
       push(time);
       requestIdleCallback(cb);
     });

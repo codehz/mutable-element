@@ -12,11 +12,11 @@ export async function mutate<T extends Node>(el: T, ret: MutateAction<T>) {
   ) {
     el.textContent = ret;
   } else if (Symbol.iterator in ret) {
-    for (let item of ret) {
+    for (const item of ret) {
       await mutate(el, item);
     }
   } else if (Symbol.asyncIterator in ret) {
-    for await (let item of ret) {
+    for await (const item of ret) {
       await mutate(el, item);
     }
   } else if ("then" in ret) {
@@ -51,7 +51,7 @@ function generateCreateElement<N extends Element>(name: string, ns?: string) {
   const el = parseName(name, ns) as N;
   return (...rest: MutateAction<N>[]) => {
     (async () => {
-      for (let p of rest) {
+      for (const p of rest) {
         await mutate(el, p);
       }
     })().catch(console.error);
@@ -103,7 +103,7 @@ export function mathml(
 export function text(...rest: MutateAction<Text>[]) {
   const el = document.createTextNode("");
   (async () => {
-    for (let p of rest) {
+    for (const p of rest) {
       await mutate(el, p);
     }
   })().catch(console.error);
@@ -118,7 +118,7 @@ export function text(...rest: MutateAction<Text>[]) {
 export function fragment(...rest: MutateAction<DocumentFragment>[]) {
   const el = document.createDocumentFragment();
   (async () => {
-    for (let p of rest) {
+    for (const p of rest) {
       await mutate(el, p);
     }
   })().catch(console.error);

@@ -24,11 +24,11 @@ async function mutateRange(ctx: DynamicRange, ret: MutateAction<DynamicRange>) {
       ctx.end
     );
   } else if (Symbol.iterator in ret) {
-    for (let item of ret) {
+    for (const item of ret) {
       await mutateRange(ctx, item);
     }
   } else if (Symbol.asyncIterator in ret) {
-    for await (let item of ret) {
+    for await (const item of ret) {
       await mutateRange(ctx, item);
     }
   } else if ("then" in ret && typeof ret.then === "function") {
@@ -59,7 +59,7 @@ export function shadow(
     if (el instanceof HTMLElement) {
       const root = el.attachShadow(init);
       (async () => {
-        for (let p of rest) {
+        for (const p of rest) {
           await mutate(root, p);
         }
       })().catch(console.error);
@@ -237,7 +237,7 @@ function namedRange(name: string, ...rest: MutateAction<DynamicRange>[]) {
   frag.appendChild(start);
   frag.appendChild(end);
   (async () => {
-    for (let p of rest) {
+    for (const p of rest) {
       await mutateRange(range, p);
     }
   })().catch(console.error);
@@ -288,7 +288,7 @@ export function list<T extends {}>(renderer: ListRenderer<T>, initial?: T[]) {
 
   function insertAt(item: T, point: Node) {
     const key = renderer.extractKey(item);
-    let nrange = namedRange(n + ":" + key, renderer.render(item));
+    const nrange = namedRange(n + ":" + key, renderer.render(item));
     point.parentNode!.insertBefore(nrange(), point);
     return nrange.range;
   }
@@ -340,7 +340,7 @@ export function list<T extends {}>(renderer: ListRenderer<T>, initial?: T[]) {
     }
   }
   function replace(packed: Packed, item: T, point = packed.range.start) {
-    let range = insertAt(item, point);
+    const range = insertAt(item, point);
     packed.range.delete();
     packed.value = item;
     packed.range = range;
@@ -363,7 +363,7 @@ export function list<T extends {}>(renderer: ListRenderer<T>, initial?: T[]) {
         if (originIdx === inputIdx) {
           if (item !== found.value) {
             if (renderer.update) {
-              let old = found.value;
+              const old = found.value;
               found.value = item;
               mutateRange(
                 found.range,
@@ -383,7 +383,7 @@ export function list<T extends {}>(renderer: ListRenderer<T>, initial?: T[]) {
               replace(found, item, pivot);
               continue;
             }
-            let old = found.value;
+            const old = found.value;
             found.value = item;
             mutateRange(
               found.range,
