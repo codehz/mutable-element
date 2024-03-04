@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  publish:
+  npm:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -15,5 +15,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v1
       - run: bun i
-      - run: npm publish --dry-run
-      - run: bun x jsr publish --dry-run
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: bun x jsr publish
+
