@@ -1,37 +1,60 @@
 import { MutateAction } from "./types.js";
 
-export async function mutate<T extends Node>(el: T, ret: MutateAction<T>) {
-  if (ret == null || typeof ret === "boolean") {
+/**
+ * Asynchronously applies mutations to the target node based on the given action.
+ * 
+ * * If the action is null or a boolean, the function returns early.
+ * * If the action is an instance of Node, it appends the action to the target node.
+ * * If the action is a string, number, or bigint, it sets the textContent of the target node.
+ * * If the action is an iterable, async iterable, promise, or function, it recursively calls the mutate function for each item in the action.
+ * * If the action does not match any of these types, it logs an error and do nothing.
+ * @param {T} target - The target node to apply mutations to.
+ * @param {MutateAction<T>} action - The action describing the mutation to be applied.
+ * @returns {Promise<void>} - A Promise that resolves once all mutations are applied.
+ */
+export async function mutate<T extends Node>(
+  target: T,
+  action: MutateAction<T>
+): Promise<void> {
+  if (action == null || typeof action === "boolean") {
     return;
-  } else if (ret instanceof Node) {
-    el.appendChild(ret);
+  } else if (action instanceof Node) {
+    target.appendChild(action);
   } else if (
-    typeof ret === "string" ||
-    typeof ret === "number" ||
-    typeof ret === "bigint"
+    typeof action === "string" ||
+    typeof action === "number" ||
+    typeof action === "bigint"
   ) {
-    el.textContent = ret;
-  } else if (Symbol.iterator in ret) {
-    for (const item of ret) {
-      await mutate(el, item);
+    target.textContent = action;
+  } else if (Symbol.iterator in action) {
+    for (const item of action) {
+      await mutate(target, item);
     }
-  } else if (Symbol.asyncIterator in ret) {
-    for await (const item of ret) {
-      await mutate(el, item);
+  } else if (Symbol.asyncIterator in action) {
+    for await (const item of action) {
+      await mutate(target, item);
     }
-  } else if ("then" in ret) {
-    await mutate(el, await ret);
-  } else if (typeof ret === "function") {
-    await mutate(el, await ret.call(el, el));
-  } else console.error("invalid object", ret);
+  } else if ("then" in action) {
+    await mutate(target, await action);
+  } else if (typeof action === "function") {
+    await mutate(target, await action.call(target, target));
+  } else console.error("invalid object", action);
 }
 
+/**
+ * Asynchronously applies mutate actions to a host node.
+ * 
+ * @see {@link mutate}
+ * @param {T} host - The host node to apply the actions to.
+ * @param {...MutateAction<T>[]} actions - The mutate actions to apply to the host node.
+ * @returns {Promise<T>} - A promise that resolves with the modified host node.
+ */
 export async function mount<T extends Node>(
-  el: T,
-  ...rest: MutateAction<T>[]
+  host: T,
+  ...actions: MutateAction<T>[]
 ): Promise<T> {
-  await mutate(el, rest);
-  return el;
+  await mutate(host, actions);
+  return host;
 }
 
 function parseName(target: string, ns?: string) {
@@ -64,6 +87,11 @@ function generateCreateElement<N extends Element>(name: string, ns?: string) {
 
 /**
  * Create a html node
+ *
+ * @example
+ * ```js
+ * html`div#id.class`(html`div#nested`('content'))
+ * ```
  */
 export function html(
   template: { raw: readonly string[] | ArrayLike<string> },
