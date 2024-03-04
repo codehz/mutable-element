@@ -1,18 +1,18 @@
 export class DynamicRange {
   constructor(public start: Node, public end: Node) {}
-  get static() {
+  get static(): Range {
     const range = document.createRange();
     range.setStartAfter(this.start);
     range.setEndBefore(this.end);
     return range;
   }
-  get parentNode() {
+  get parentNode(): ParentNode | null {
     return this.start.parentNode;
   }
-  get isConnected() {
+  get isConnected(): boolean {
     return this.start.isConnected;
   }
-  get firstChild() {
+  get firstChild(): ChildNode | null {
     const first = this.start.nextSibling;
     return first === this.end ? null : first;
   }
@@ -40,7 +40,7 @@ export class DynamicRange {
     frag.appendChild(parent ? parent.removeChild(this.end) : this.end);
     return frag;
   }
-  insertBefore(node: Node, child: Node | null) {
+  insertBefore(node: Node, child: Node | null): void {
     const parent = this.parentNode;
     if (!parent) return;
     if (child) {
@@ -51,17 +51,17 @@ export class DynamicRange {
       parent.insertBefore(node, this.end);
     }
   }
-  appendChild(node: Node) {
+  appendChild(node: Node): void {
     this.parentNode?.insertBefore?.(node, this.end);
   }
-  replace(node: Node) {
+  replace(node: Node): void {
     const parent = this.parentNode;
     if (!parent) return;
     this.static.deleteContents();
     parent.removeChild(this.start);
     parent.replaceChild(node, this.end);
   }
-  delete() {
+  delete(): void {
     const parent = this.parentNode;
     if (!parent) return;
     this.static.deleteContents();

@@ -26,7 +26,10 @@ export async function mutate<T extends Node>(el: T, ret: MutateAction<T>) {
   } else console.error("invalid object", ret);
 }
 
-export async function mount<T extends Node>(el: T, ...rest: MutateAction<T>[]) {
+export async function mount<T extends Node>(
+  el: T,
+  ...rest: MutateAction<T>[]
+): Promise<T> {
   await mutate(el, rest);
   return el;
 }
@@ -100,7 +103,7 @@ export function mathml(
  * @param rest Initial mutate actions
  * @returns TextNode
  */
-export function text(...rest: MutateAction<Text>[]) {
+export function text(...rest: MutateAction<Text>[]): Text {
   const el = document.createTextNode("");
   (async () => {
     for (const p of rest) {
@@ -115,7 +118,9 @@ export function text(...rest: MutateAction<Text>[]) {
  * @param rest Initial mutate actions
  * @returns DocumentFragment
  */
-export function fragment(...rest: MutateAction<DocumentFragment>[]) {
+export function fragment(
+  ...rest: MutateAction<DocumentFragment>[]
+): DocumentFragment {
   const el = document.createDocumentFragment();
   (async () => {
     for (const p of rest) {

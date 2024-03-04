@@ -1,3 +1,5 @@
+import { fragment, mutate } from "./mutable.js";
+import { DynamicRange } from "./range.js";
 import {
   ClassNameInput,
   ListAction,
@@ -5,19 +7,13 @@ import {
   MutateAction,
   StyleDeclarationInput,
 } from "./types.js";
-import { fragment, mutate } from "./mutable.js";
-import { DynamicRange } from "./range.js";
 
 async function mutateRange(ctx: DynamicRange, ret: MutateAction<DynamicRange>) {
   if (ret == null || typeof ret === "boolean") {
     return;
   } else if (ret instanceof Node) {
     ctx.end.parentNode!.insertBefore(ret, ctx.end);
-  } else if (
-    typeof ret === "string" ||
-    typeof ret === "number" ||
-    typeof ret === "bigint"
-  ) {
+  } else if (["string", "number", "bigint"].includes(typeof ret)) {
     ctx.static.deleteContents();
     ctx.end.parentNode!.insertBefore(
       document.createTextNode(ret + ""),
@@ -54,7 +50,7 @@ function assignProps<T, R>(input: T, rhs: R): T & R {
 export function shadow(
   init: ShadowRootInit,
   ...rest: MutateAction<ShadowRoot>[]
-) {
+): (el: Node) => void {
   return (el: Node) => {
     if (el instanceof HTMLElement) {
       const root = el.attachShadow(init);
@@ -76,7 +72,7 @@ export function shadow(
 export function css(
   template: string | { raw: readonly string[] | ArrayLike<string> },
   ...substitutions: any[]
-) {
+): (node: Node) => void {
   const content =
     typeof template === "string"
       ? template
@@ -84,7 +80,7 @@ export function css(
   if ("adoptedStyleSheets" in document) {
     const stylesheet = new CSSStyleSheet();
     stylesheet.replaceSync(content);
-    return (node: Node) => {
+    return (node) => {
       const root = node.getRootNode();
       if (root instanceof ShadowRoot) {
         root.adoptedStyleSheets = [
@@ -115,8 +111,8 @@ export function on<T extends Node>(
   name: string,
   listener: (this: T, event: Event) => MutateAction<T>,
   options?: AddEventListenerOptions
-) {
-  return (el: T) => {
+): (el: T) => void {
+  return (el) => {
     el.addEventListener(
       name,
       (e) => void mutate(el, listener.call(el, e)).catch(console.error),
@@ -130,8 +126,8 @@ export function on<T extends Node>(
  * @param input Style input
  * @returns Modify style action
  */
-export function style(input: StyleDeclarationInput) {
-  return (el: Node) => {
+export function style(input: StyleDeclarationInput): (el: Node) => void {
+  return (el) => {
     if ("style" in el && el.style instanceof CSSStyleDeclaration) {
       for (const [key, value] of Object.entries(input)) {
         if (typeof value === "string") {
@@ -177,9 +173,9 @@ export function* processClassnames(
  * @param inputs Classname input
  * @returns Modify classname mutate action
  */
-export function classnames(...inputs: ClassNameInput[]) {
+export function classnames(...inputs: ClassNameInput[]): (el: Node) => void {
   const result = [...new Set(processClassnames(inputs))].join(" ");
-  return (el: Node) => {
+  return (el) => {
     if (el instanceof Element) {
       el.className = result;
     } else {
@@ -193,19 +189,19 @@ export function classnames(...inputs: ClassNameInput[]) {
  * @param input Attribute input
  * @returns Modify node' attribute mutate action
  */
-export function attr(input: Record<string, unknown>) {
-  return (el: Node) => void Object.assign(el, input);
+export function attr(input: Record<string, unknown>): (el: Node) => void {
+  return (el) => void Object.assign(el, input);
 }
 
 /**
- * Dataset function takes in an input object and returns a function that assigns the input object as data attributes 
+ * Dataset function takes in an input object and returns a function that assigns the input object as data attributes
  * to an HTML element if the element is of type HTMLElement.
- * 
+ *
  * @param input - An object containing data attributes to assign to the HTML element.
  * @returns A function that assigns the input object as data attributes to an HTML element if the element is of type HTMLElement.
  */
-export function dataset(input: Record<string, unknown>) {
-  return (el: Node) =>
+export function dataset(input: Record<string, unknown>): (el: Node) => void {
+  return (el) =>
     void (el instanceof HTMLElement && Object.assign(el.dataset, input));
 }
 
@@ -214,9 +210,10 @@ export function dataset(input: Record<string, unknown>) {
  * @param node Target node
  * @returns Prepending target to current element actions
  */
-export function prepend(...rest: MutateAction<DocumentFragment>[]) {
-  return (el: Node | DynamicRange) =>
-    void el.insertBefore(fragment(...rest), el.firstChild);
+export function prepend(
+  ...rest: MutateAction<DocumentFragment>[]
+): (el: Node | DynamicRange) => void {
+  return (el) => void el.insertBefore(fragment(...rest), el.firstChild);
 }
 
 /**
@@ -224,15 +221,17 @@ export function prepend(...rest: MutateAction<DocumentFragment>[]) {
  * @param node Target node
  * @returns Appending target to current element action
  */
-export function append(...rest: MutateAction<DocumentFragment>[]) {
-  return (el: Node | DynamicRange) => void el.appendChild(fragment(...rest));
+export function append(
+  ...rest: MutateAction<DocumentFragment>[]
+): (el: Node | DynamicRange) => void {
+  return (el) => void el.appendChild(fragment(...rest));
 }
 
 /**
  * Empty element
  */
-export function empty() {
-  return (el: Node | DynamicRange) => {
+export function empty(): (el: Node | DynamicRange) => void {
+  return (el) => {
     if (el instanceof DynamicRange) {
       el.static.deleteContents();
     } else {
@@ -241,7 +240,10 @@ export function empty() {
   };
 }
 
-function namedRange(name: string, ...rest: MutateAction<DynamicRange>[]) {
+function namedRange(
+  name: string,
+  ...rest: MutateAction<DynamicRange>[]
+): (() => DocumentFragment) & { range: DynamicRange } {
   const start = document.createComment(`range[${name}] start`);
   const end = document.createComment(`range[${name}] end`);
   const range = new DynamicRange(start, end);
@@ -256,7 +258,9 @@ function namedRange(name: string, ...rest: MutateAction<DynamicRange>[]) {
   return Object.assign(() => frag, { range });
 }
 
-export function range(...rest: MutateAction<DynamicRange>[]) {
+export function range(
+  ...rest: MutateAction<DynamicRange>[]
+): (() => DocumentFragment) & { range: DynamicRange } {
   const n = Math.random().toString(36).slice(2);
   return namedRange(n, ...rest);
 }
@@ -292,7 +296,22 @@ export class KeyedListRenderer<
   }
 }
 
-export function list<T extends {}>(renderer: ListRenderer<T>, initial?: T[]) {
+export interface ListInterface<T> {
+  readonly data: T[];
+  eval(...rest: ListAction<T>[]): Promise<void>;
+  assign(value: T[]): void;
+  append(...value: T[]): void;
+  appendUnique(...value: T[]): void;
+  prepend(...value: T[]): void;
+  prependUnique(...value: T[]): void;
+  remove(...keys: string[]): void;
+  clear(): void;
+}
+
+export function list<T extends {}>(
+  renderer: ListRenderer<T>,
+  initial?: T[]
+): (() => DocumentFragment) & { range: DynamicRange } & ListInterface<T> {
   type Packed = { range: DynamicRange; value: T };
   const data = [] as Packed[];
   const n = renderer.name ?? "list-" + Math.random().toString(36).slice(2);

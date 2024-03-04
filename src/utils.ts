@@ -1,7 +1,7 @@
 export class Resolver<T> {
   resolve!: (value: T) => void;
   reject!: (error: any) => void;
-  promise = new Promise<T>((resolve, reject) => {
+  promise: Promise<T> = new Promise<T>((resolve, reject) => {
     this.resolve = resolve;
     this.reject = reject;
   });
@@ -19,7 +19,7 @@ export class Reactor<T = void> implements AsyncIterableIterator<T> {
       push: (input: T) => boolean,
       stop: () => void
     ) => void | (() => void)
-  ) {
+  ): Reactor<T> {
     const reactor: Reactor<T> = new Reactor<T>();
     reactor.onExit =
       handler(reactor.push.bind(reactor), reactor.stop.bind(reactor)) ??
@@ -96,7 +96,7 @@ export class BufferedReactor<T> extends Reactor<T> {
       push: (input: T) => boolean,
       stop: () => void
     ) => void | (() => void)
-  ) {
+  ): BufferedReactor<T> {
     const reactor: BufferedReactor<T> = new BufferedReactor<T>();
     reactor.onExit =
       handler(reactor.push.bind(reactor), reactor.stop.bind(reactor)) ??
@@ -139,7 +139,7 @@ export function listen<T extends Event = Event>(
   node: EventTarget,
   event: string,
   options?: Omit<AddEventListenerOptions, "once" | "signal">
-) {
+): BufferedReactor<T> {
   const controller = new AbortController();
   const reactor = new BufferedReactor<T>(() => controller.abort());
   node.addEventListener(event, (e) => reactor.push(e as T), {
@@ -149,18 +149,18 @@ export function listen<T extends Event = Event>(
   return reactor;
 }
 
-export function wait(ms: number) {
+export function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function clock(ms: number) {
+export function clock(ms: number): Reactor<void> {
   return Reactor.create((push) => {
     const handler = setInterval(push, ms);
     return () => clearInterval(handler);
   });
 }
 
-export function animationFrame() {
+export function animationFrame(): Reactor<number> {
   return Reactor.create<DOMHighResTimeStamp>((push) => {
     const handler = requestAnimationFrame(function cb(time) {
       push(time);
@@ -170,7 +170,7 @@ export function animationFrame() {
   });
 }
 
-export function idle() {
+export function idle(): Reactor<IdleDeadline> {
   return Reactor.create<IdleDeadline>((push) => {
     const handler = requestIdleCallback(function cb(time) {
       push(time);
