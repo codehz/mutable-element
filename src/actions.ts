@@ -240,7 +240,7 @@ export function empty(): (el: Node | DynamicRange) => void {
   };
 }
 
-function namedRange(
+export function namedRange(
   name: string,
   ...rest: MutateAction<DynamicRange>[]
 ): (() => DocumentFragment) & { range: DynamicRange } {
