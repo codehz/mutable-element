@@ -107,15 +107,15 @@ export function css(
  * @param options Event Listener Options
  * @returns Event Listener mutate action
  */
-export function on<T extends Node>(
+export function on<T extends Node, E extends Event = Event>(
   name: string,
-  listener: (this: T, event: Event) => MutateAction<T>,
+  listener: (this: T, event: E) => MutateAction<T>,
   options?: AddEventListenerOptions
 ): (el: T) => void {
   return (el) => {
     el.addEventListener(
       name,
-      (e) => void mutate(el, listener.call(el, e)).catch(console.error),
+      (e) => void mutate(el, listener.call(el, e as any)).catch(console.error),
       options
     );
   };
