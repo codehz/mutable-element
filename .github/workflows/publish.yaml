@@ -13,12 +13,12 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
       - run: bun x jsr publish
       - uses: actions/setup-node@v4
         with:
           node-version: '21.x'
           registry-url: 'https://registry.npmjs.org'
-      - uses: oven-sh/setup-bun@v1
       - run: bun i
       - run: npm publish
         env:
