@@ -1,3 +1,4 @@
+import { Properties } from "csstype";
 /**
  * All possible mutate action
  */
@@ -39,15 +40,8 @@ export type ListAction<T> =
  * Style input
  * transform $CustomVar to --custom-var
  */
-export type StyleDeclarationInput = {
-  [K in keyof CSSStyleDeclaration as [K, CSSStyleDeclaration[K]] extends [
-    string,
-    string
-  ]
-    ? K
-    : never]?: string | boolean | null;
-} & {
-  [K in `$${string}`]?: string | boolean | null;
+export type StyleDeclarationInput = Properties & {
+  [K in `$${string}`]?: string | number | null;
 };
 
 /**
