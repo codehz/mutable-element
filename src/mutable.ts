@@ -67,7 +67,7 @@ function parseName(target: string, ns?: string) {
   for (const { groups } of target.matchAll(/\.(?<name>[\w\-_]+)/g))
     element.classList.add(groups!.name);
   for (const { groups } of target.matchAll(
-    /\[(?<name>[\w_]+)(?:=(?<value>(?:\\.|[^\]])+)\])?/g
+    /\[(?<name>[\w_-]+)(?:=(?<value>(?:\\.|[^\]])+)\])?/g
   ))
     element.setAttribute(groups!.name, groups!.value ?? "");
   return element;
